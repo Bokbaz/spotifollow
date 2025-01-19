@@ -33,7 +33,7 @@ try:
 
     if not token_info:
         auth_url = spotify_auth.get_authorize_url()
-        st.write("[Click here to authenticate with Spotify]({auth_url})")
+        st.write(f"[Click here to authenticate with Spotify]({auth_url})")
         st.stop()
 
     spotify = spotipy.Spotify(auth=token_info['access_token'])
