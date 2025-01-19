@@ -1,7 +1,6 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import streamlit as st
-import time
 from datetime import datetime
 
 # Function to get followers count for a Spotify user
@@ -48,30 +47,39 @@ try:
         # Initialize session state for followers
         if "followers_count" not in st.session_state:
             st.session_state["followers_count"] = get_followers_count(spotify, user_id)
+        if "follower_increase_count" not in st.session_state:
+            st.session_state["follower_increase_count"] = 0
 
         # Display current followers count dynamically
         followers_display = st.empty()
+        increase_display = st.empty()
         current_followers_count = st.session_state["followers_count"]
 
-        # Polling for new followers
-        while True:
-            new_followers_count = get_followers_count(spotify, user_id)
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Fetch new followers count
+        new_followers_count = get_followers_count(spotify, user_id)
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            if new_followers_count is not None:
-                if new_followers_count != current_followers_count:
-                    st.session_state["followers_count"] = new_followers_count
-                    current_followers_count = new_followers_count
-                    followers_display.write(
-                        f":tada: Followers count updated! New Total: {new_followers_count} \n\nLast Updated: {current_time}"
-                    )
-                else:
-                    followers_display.write(
-                        f"No change in followers. Current Total: {current_followers_count} \n\nLast Checked: {current_time}"
-                    )
+        if new_followers_count is not None:
+            if new_followers_count != current_followers_count:
+                st.session_state["followers_count"] = new_followers_count
+                st.session_state["follower_increase_count"] += new_followers_count - current_followers_count
+                current_followers_count = new_followers_count
+                followers_display.write(
+                    f":tada: Followers count updated! New Total: {new_followers_count} \n\nLast Updated: {current_time}"
+                )
+                increase_display.write(
+                    f"Follower Increases Detected: {st.session_state['follower_increase_count']}"
+                )
+            else:
+                followers_display.write(
+                    f"No change in followers. Current Total: {current_followers_count} \n\nLast Checked: {current_time}"
+                )
+                increase_display.write(
+                    f"Follower Increases Detected: {st.session_state['follower_increase_count']}"
+                )
 
-            # Refresh every 3 seconds
-            time.sleep(3)
+        # Refresh the app every 3 seconds
+        st.experimental_rerun()
 
 except Exception as e:
     st.error(f"Error connecting to Spotify API: {e}")
