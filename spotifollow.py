@@ -51,3 +51,53 @@ st.title("Spotify Follower Notifier")
 client_id = st.secrets["spotify_client_id"]
 client_secret = st.secrets["spotify_client_secret"]
 redirect_uri = "https://spotifollowbok.streamlit.app/"  # Fixed redirect URI
+
+# Initialize Spotify OAuth
+try:
+    spotify_auth = SpotifyOAuth(
+        client_id=client_id,
+        client_secret=client_secret,
+        redirect_uri=redirect_uri,
+        scope="user-read-private"
+    )
+    token_info = spotify_auth.get_access_token(as_dict=False)
+    spotify = spotipy.Spotify(auth=token_info)
+
+    # Get current user's profile
+    user = spotify.current_user()
+    if user:
+        st.success(f"Connected as {user['display_name']}")
+        user_id = user['id']
+
+        # Display current followers
+        current_followers = get_followers_details(spotify, user_id)
+        if current_followers is not None:
+            st.session_state["followers"] = set(current_followers)
+            st.write(f"Current Followers: {len(current_followers)}")
+
+        # Textbox to display new followers
+        new_follower_box = st.empty()
+
+        # Polling for new followers
+        st.write("Listening for new followers...")
+
+        while True:
+            sleep(3)  # Check every 3 seconds
+            new_followers = get_followers_details(spotify, user_id)
+
+            if new_followers is not None:
+                if "followers" in st.session_state:
+                    new_follower_names = set(new_followers) - st.session_state["followers"]
+
+                    if new_follower_names:
+                        st.write(f":tada: You have new followers! Total Followers: {len(new_followers)}")
+                        send_email_notification(len(new_followers), list(new_follower_names))
+                        new_follower_box.text_area("New Followers:", "\n".join(new_follower_names), height=200)
+
+                    # Update session state
+                    st.session_state["followers"] = set(new_followers)
+                else:
+                    st.session_state["followers"] = set(new_followers)
+
+except Exception as e:
+    st.error(f"Error connecting to Spotify API: {e}")
