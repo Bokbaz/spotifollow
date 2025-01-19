@@ -48,23 +48,20 @@ try:
         if "followers_count" not in st.session_state:
             st.session_state["followers_count"] = get_followers_count(spotify, user_id)
 
-        # Display current followers count
+        # Display current followers count dynamically
+        followers_display = st.empty()
         current_followers_count = st.session_state["followers_count"]
-        st.write(f"Current Followers: {current_followers_count}")
 
         # Polling for new followers
-        st.write("Listening for follower count updates...")
+        while True:
+            new_followers_count = get_followers_count(spotify, user_id)
+            if new_followers_count is not None and new_followers_count != current_followers_count:
+                st.session_state["followers_count"] = new_followers_count
+                current_followers_count = new_followers_count
+                followers_display.write(f":tada: Your followers count updated! New Total: {new_followers_count}")
 
-        # Check for updates periodically
-        new_followers_count = get_followers_count(spotify, user_id)
-
-        if new_followers_count is not None and new_followers_count > current_followers_count:
-            st.write(f":tada: Your followers increased! New Total: {new_followers_count}")
-            st.session_state["followers_count"] = new_followers_count
-
-        # Refresh the app after a short delay
-        time.sleep(3)
-        st.experimental_rerun()
+            # Refresh every 5 seconds
+            time.sleep(5)
 
 except Exception as e:
     st.error(f"Error connecting to Spotify API: {e}")
