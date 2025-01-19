@@ -5,6 +5,7 @@ from time import sleep
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from PIL import Image
 
 # Function to send an email notification
 def send_email_notification(new_followers, new_follower_names):
