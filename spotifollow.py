@@ -47,14 +47,13 @@ def get_followers_details(spotify, user_id):
 # Streamlit App Setup
 st.title("Spotify Follower Notifier")
 
-# Input for Spotify API credentials
-st.sidebar.header("Spotify API Credentials")
-client_id = st.sidebar.text_input("Client ID", type="password")
-client_secret = st.sidebar.text_input("Client Secret", type="password")
+# Using Streamlit secrets to get Spotify API credentials
+client_id = st.secrets["spotify_client_id"]
+client_secret = st.secrets["spotify_client_secret"]
 redirect_uri = st.sidebar.text_input("Redirect URI", "http://localhost:8888/callback/")
 
 if st.sidebar.button("Connect to Spotify API"):
-    if client_id and client_secret and redirect_uri:
+    if redirect_uri:
         try:
             # Authenticate with Spotify API
             spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(
@@ -103,4 +102,4 @@ if st.sidebar.button("Connect to Spotify API"):
         except Exception as e:
             st.error(f"Error connecting to Spotify API: {e}")
     else:
-        st.error("Please provide all API credentials.")
+        st.error("Please provide a redirect URI.")
