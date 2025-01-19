@@ -30,10 +30,12 @@ try:
         scope="user-read-private"
     )
     token_info = spotify_auth.get_cached_token()
+
     if not token_info:
-        st.write("Redirecting to Spotify for authentication...")
+        auth_url = spotify_auth.get_authorize_url()
+        st.write("[Click here to authenticate with Spotify]({auth_url})")
         st.stop()
-    
+
     spotify = spotipy.Spotify(auth=token_info['access_token'])
 
     # Get current user's profile
