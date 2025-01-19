@@ -2,6 +2,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import streamlit as st
 import time
+from datetime import datetime
 
 # Function to get followers count for a Spotify user
 def get_followers_count(spotify, user_id):
@@ -55,13 +56,22 @@ try:
         # Polling for new followers
         while True:
             new_followers_count = get_followers_count(spotify, user_id)
-            if new_followers_count is not None and new_followers_count != current_followers_count:
-                st.session_state["followers_count"] = new_followers_count
-                current_followers_count = new_followers_count
-                followers_display.write(f":tada: Your followers count updated! New Total: {new_followers_count}")
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            # Refresh every 5 seconds
-            time.sleep(5)
+            if new_followers_count is not None:
+                if new_followers_count != current_followers_count:
+                    st.session_state["followers_count"] = new_followers_count
+                    current_followers_count = new_followers_count
+                    followers_display.write(
+                        f":tada: Followers count updated! New Total: {new_followers_count} \n\nLast Updated: {current_time}"
+                    )
+                else:
+                    followers_display.write(
+                        f"No change in followers. Current Total: {current_followers_count} \n\nLast Checked: {current_time}"
+                    )
+
+            # Refresh every 3 seconds
+            time.sleep(3)
 
 except Exception as e:
     st.error(f"Error connecting to Spotify API: {e}")
